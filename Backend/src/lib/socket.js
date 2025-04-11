@@ -30,10 +30,15 @@ io.on("connection",(socket)=>{
     //io.emit is used to send events to all the connected users
     io.emit("getOnlineUsers",Object.keys(userSocketMap))
 
-
     socket.on("disconnect",()=>{
         console.log("A user disconnected",socket.id)
-        delete userSocketMap[userId]
+        // Find and remove the user by socket ID instead of userId
+        const disconnectedUserId = Object.keys(userSocketMap).find(
+            key => userSocketMap[key] === socket.id
+        );
+        if (disconnectedUserId) {
+            delete userSocketMap[disconnectedUserId];
+        }
         io.emit("getOnlineUsers",Object.keys(userSocketMap))
     })
 })

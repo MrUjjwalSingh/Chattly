@@ -6,33 +6,35 @@ import cookieParser from "cookie-parser"
 import {connectDB} from "./lib/db.index.js"
 import cors from "cors"
 import { app,server } from "./lib/socket.js"
-
 import path from "path"
 
 dotenv.config()
 
 const PORT = process.env.PORT
-const _dirname = path.resolve();
+const __dirname = path.resolve();
 
 app.use(express.json({ limit: '50mb' })); 
 app.use(cookieParser())
 app.use(
     cors({
-        origin:"http://localhost:5173",
-        credentials:true
+        origin: process.env.NODE_ENV === "production" 
+            ? process.env.FRONTEND_URL || "https://your-production-domain.com" 
+            : "http://localhost:5173",
+        credentials: true
     })
 )
 
 app.use("/api/auth",authRoutes)
 app.use("/api/messages",messageRoutes)
 
-if(process.env.NODE_ENV==="production"){
-    app.use(express.static(path.join(_dirname,"../frontend/dist")))
+if (process.env.NODE_ENV === "production") {
+    // Serve static files from the dist directory
+    app.use(express.static(path.join(__dirname, "dist")));
 
-
-    app.get("*",(req,res)=>{
-        res.sendFile(path.join(_dirname,"../frontend","dist","index.html"))
-    })
+    // Handle client-side routing
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(__dirname, "dist", "index.html"));
+    });
 }
 
 const startServer = async()=>{

@@ -3,7 +3,10 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast"
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/"
+// Use the same base URL as axios for socket connection
+const BASE_URL = import.meta.env.MODE === "development" 
+    ? "http://localhost:5000" 
+    : window.location.origin;
 
 export const useAuthStore = create((set,get) => ({
   authUser: null,
@@ -17,13 +20,14 @@ export const useAuthStore = create((set,get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check"); 
-      console.log("auth check response",res);
+      console.log("auth check response", res);
       console.log("User authenticated:", res.data.fullName);
       set({ authUser: res.data }); 
       get().connectSocket()
     } catch (error) {
-      console.error("Error in checkAuth:", error.response.data || error.message);
+      console.error("Error in checkAuth:", error.response?.data || error.message);
       set({ authUser: null });
+      // Don't show error toast for auth check failures as they're expected when not logged in
     } finally {
       setTimeout(() => {
         set({ isCheckingAuth: false });
